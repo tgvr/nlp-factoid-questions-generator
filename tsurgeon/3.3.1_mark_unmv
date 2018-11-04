@@ -1,0 +1,73 @@
+VP < (S=unmv $,, /,/)
+
+relabel unmv unmv
+
+S < PP|ADJP|ADVP|S|SBAR=unmv > ROOT
+
+relabel unmv unmv
+
+/\\.*/ < CC << NP|ADJP|VP|ADVP|PP=unmv
+
+relabel unmv unmv
+
+SBAR < (IN|DT < /[ˆthat]/) << NP|PP=unmv
+
+relabel unmv unmv
+
+SBAR < /ˆWH.*P$/ << NP|ADJP|VP|ADVP|PP=unmv
+
+relabel unmv unmv
+
+SBAR <, IN|DT < (S < (NP=unmv !$,, VP))
+
+relabel unmv unmv
+
+S < (VP <+(VP) (VB|VBD|VBN|VBZ < be|being|been|is|are|was|were|am) <+(VP) (S << NP|ADJP|VP|ADVP|PP=unmv))
+
+relabel unmv unmv
+
+NP << (PP=unmv !< (IN < of|about))
+
+relabel unmv unmv
+
+PP << PP=unmv
+
+relabel unmv unmv
+
+NP $ VP << PP=unmv
+
+relabel unmv unmv
+
+SBAR=unmv [ !> VP | $-- /,/ | < RB ]
+
+relabel unmv unmv
+
+SBAR=unmv !< WHNP < (/ˆ[ˆS].*/ !<< that|whether|how)
+
+relabel unmv unmv
+
+NP=unmv < EX
+
+relabel unmv unmv
+
+/ˆS/ < ‘‘ << NP|ADJP|VP|ADVP|PP=unmv
+
+relabel unmv unmv
+
+PP=unmv !< NP
+
+relabel unmv unmv
+
+NP=unmv $ @NP
+
+relabel unmv unmv
+
+NP|PP|ADJP|ADVP << NP|ADJP|VP|ADVP|PP=unmv
+
+relabel unmv unmv
+
+@UNMV << NP|ADJP|VP|ADVP|PP=unmv
+
+relabel unmv unmv
+
+
