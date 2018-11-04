@@ -10,11 +10,11 @@ relabel unmv unmv
 
 relabel unmv unmv
 
-SBAR < (IN|DT < /[ˆthat]/) << NP|PP=unmv
+SBAR < (IN|DT < /[^that]/) << NP|PP=unmv
 
 relabel unmv unmv
 
-SBAR < /ˆWH.*P$/ << NP|ADJP|VP|ADVP|PP=unmv
+SBAR < /^WH.*P$/ << NP|ADJP|VP|ADVP|PP=unmv
 
 relabel unmv unmv
 
@@ -42,7 +42,7 @@ SBAR=unmv [ !> VP | $-- /,/ | < RB ]
 
 relabel unmv unmv
 
-SBAR=unmv !< WHNP < (/ˆ[ˆS].*/ !<< that|whether|how)
+SBAR=unmv !< WHNP < (/^[^S].*/ !<< that|whether|how)
 
 relabel unmv unmv
 
@@ -50,7 +50,7 @@ NP=unmv < EX
 
 relabel unmv unmv
 
-/ˆS/ < ‘‘ << NP|ADJP|VP|ADVP|PP=unmv
+/^S/ < ‘‘ << NP|ADJP|VP|ADVP|PP=unmv
 
 relabel unmv unmv
 
@@ -66,8 +66,6 @@ NP|PP|ADJP|ADVP << NP|ADJP|VP|ADVP|PP=unmv
 
 relabel unmv unmv
 
-@UNMV << NP|ADJP|VP|ADVP|PP=unmv
+@unmv << NP|ADJP|VP|ADVP|PP=unmv
 
 relabel unmv unmv
-
-
