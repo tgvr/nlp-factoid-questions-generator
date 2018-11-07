@@ -1,65 +1,102 @@
-import os, nltk, sys
+import os, nltk, sys, re
+import spacy
 
-def get_continuous_chunks(tagged_sent):
-    continuous_chunk = []
-    current_chunk = []
+def find_noun_phrases(tree):
+    return [subtree for subtree in tree.subtrees(lambda t: t.label()=='NP')]
 
-    for token, tag in tagged_sent:
-        if tag != "O":
-            current_chunk.append((token, tag))
+def find_head_of_np(np):
+    noun_tags = ['NN', 'NNS', 'NNP', 'NNPS']
+    top_level_trees = [np[i] for i in range(len(np)) if type(np[i]) is nltk.tree.Tree]
+    ## search for a top-level noun
+    top_level_nouns = [t for t in top_level_trees if t.label() in noun_tags]
+    if len(top_level_nouns) > 0:
+        ## if you find some, pick the rightmost one, just 'cause
+        return top_level_nouns[-1][0]
+    else:
+        ## search for a top-level np
+        top_level_nps = [t for t in top_level_trees if t.label()=='NP']
+        if len(top_level_nps) > 0:
+            ## if you find some, pick the head of the rightmost one, just 'cause
+            return find_head_of_np(top_level_nps[-1])
         else:
-            if current_chunk: # if the current chunk is not empty
-                continuous_chunk.append(current_chunk)
-                current_chunk = []
-    # Flush the final current_chunk into the continuous_chunk, if any.
-    if current_chunk:
-        continuous_chunk.append(current_chunk)
-    return continuous_chunk
+            ## search for any noun
+            nouns = [p[0] for p in np.pos() if p[1] in noun_tags]
+            if len(nouns) > 0:
+                ## if you find some, pick the rightmost one, just 'cause
+                return nouns[-1]
+            else:
+                ## return the rightmost word, just 'cause
+                return np.leaves()[-1]
 
-def NERTagging():
-    st = nltk.tag.StanfordNERTagger('english.all.3class.distsim.crf.ser.gz',
-                                    'stanford-ner.jar',
-                                    encoding='utf-8')
-    tagged_sent = st.tag(sys.argv[1].split())
+def getQuestionPhraseNP(t, d, t_full):
+    head = find_head_of_np(t)
+    personalPronouns = ['i', 'me', 'my', 'mine', 'we', 'us', 'our', 'ours',
+                        'you', 'your', 'yours', 'he', 'she', 'it', 'him', 'her',
+                        'his', 'hers', 'its', 'they', 'them', 'their', 'theirs']
+    locationPOS = ['LOC', 'GPE', 'FAC']
+    timePOS = ['DATE', 'TIME']
+    numberPOS = ['CD', 'QP']
 
-    named_entities = get_continuous_chunks(tagged_sent)
-    named_entities_str_tag_3class = [(" ".join([token for token, tag in ne]), ne[0][1]) for ne in named_entities]
+    try:
+        d[head]
+    except KeyError:
+        d[head] = -1
 
-    st = nltk.tag.StanfordNERTagger('english.conll.4class.distsim.crf.ser.gz',
-                                    'stanford-ner.jar',
-                                    encoding='utf-8')
-    tagged_sent = st.tag(sys.argv[1].split())
+    # where
+    if (d[head] in locationPOS):
+        return 'Where'
+    # when
+    if ((d[head] in timePOS) or (re.match(r"[1|2]\d\d\d", head))):
+        return 'When'
 
-    named_entities = get_continuous_chunks(tagged_sent)
-    named_entities_str_tag_4class = [(" ".join([token for token, tag in ne]), ne[0][1]) for ne in named_entities]
+    # whose NP
+    head_pos = t_full.leaf_treeposition(t_full.leaves().index(head))
+    temp = list(head_pos[:-2])
+    temp.append(head_pos[-2]+1)
+    head_pos_right_sibling = tuple(temp)
 
-    st = nltk.tag.StanfordNERTagger('english.muc.7class.distsim.crf.ser.gz',
-                                    'stanford-ner.jar',
-                                    encoding='utf-8')
-    tagged_sent = st.tag(sys.argv[1].split())
+    temp = []
+    for pos in t.pos():
+        if len(pos) == 1 and pos != 0:
+            temp.extend(t[pos].leaves())
+    mod_NP = " ".join(temp).strip('.').rstrip()
 
-    named_entities = get_continuous_chunks(tagged_sent)
-    named_entities_str_tag_7class = [(" ".join([token for token, tag in ne]), ne[0][1]) for ne in named_entities]
+    try:
+        if (d[head] == 'PERSON' and t_full[head_pos_right_sibling].label() == 'POS'):
+            return 'Whose ' + mod_NP
+    except IndexError:
+        pass
 
-    d3 = dict(named_entities_str_tag_3class)
-    d4 = dict(named_entities_str_tag_4class)
-    d7 = dict(named_entities_str_tag_7class)
+    # who
+    if (d[head] == 'PERSON' or head.lower() in personalPronouns):
+        return 'Who'
 
-    return d3, d4, d7
+    # how many NP
+    if t[0].label() in numberPOS:
+        temp = []
+        for pos in t.pos():
+            if len(pos) == 1 and pos != 0:
+                temp.extend(t[pos].leaves())
+        a = " ".join(temp).strip('.').rstrip()
+        return 'How many ' + a
 
-def getQuestionPhraseNP():
-    pass
+    # what
+    return 'What'
 
 def main():
-    # d3, d4, d7 = NERTagging()
     with open('txt/3.3.1.txt') as fp:
         line = fp.readline()
     t = nltk.tree.Tree.fromstring(line)
+
+    with open('txt/parseTree.txt') as fp:
+        line = fp.readline()
+    t0 = nltk.tree.Tree.fromstring(line)
 
     height = t.height()
     length_flag = -1
     answerPhraseList = []
     questionPhraseList = []
+    answerPhrasePOS = ['NP', 'PP', 'SBAR']
 
     # Identify Answer Phrases
     for pos in t.treepositions():
@@ -67,14 +104,13 @@ def main():
             if len(pos) == length_flag:
                 length_flag = -1
         if length_flag == -1 and not isinstance(t[pos], str):
-            if t[pos].label() == ('NP' or 'PP' or 'SBAR'):
+            if t[pos].label() in answerPhrasePOS:
                 answerPhraseList.append(pos)
                 length_flag = len(pos)
 
-    # for pos in answerPhraseList:
-    #     print('***************')
-    #     print(t[pos])
-    #     print('***************')
+    nlp = spacy.load('en')
+    doc = nlp(sys.argv[1])
+    d = dict([(X.text, X.label_) for X in doc.ents])
 
     # Generate Question Phrases
     for pos in answerPhraseList:
@@ -82,10 +118,19 @@ def main():
             questionPhraseList.append('What')
         elif (t[pos].label() == 'PP'):
             # assuming PP --> prep NP
-            questionPhraseList.append(getQuestionPhraseNP(t[pos][1]))
+            prepositions = ['on', 'in', 'at', 'over', 'to']
+            if (t0[pos][0].leaves()[0].lower() in prepositions):
+                questionPhraseList.append(getQuestionPhraseNP(t0[pos][1], d, t0))
+            else:
+                questionPhraseList.append(-1)
         elif (t[pos].label() == 'NP'):
-            questionPhraseList.append(getQuestionPhraseNP(t[pos]))
+            questionPhraseList.append(getQuestionPhraseNP(t0[pos], d, t0))
 
+    # for i in range(0, len(answerPhraseList)):
+    #     print('****************')
+    #     print(t0[answerPhraseList[i]].leaves())
+    #     print(questionPhraseList[i])
+    #     print('****************')
 
 if __name__ == "__main__":
     main()
