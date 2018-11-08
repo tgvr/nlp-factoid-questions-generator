@@ -30,6 +30,20 @@ Did I see an eagle?
 Who saw an eagle?
 What did I saw?
 What did I see?
+
+bash main.sh "Peter is studying in NY"
+
+OUTPUT:
+Is Peter studying in NY?
+Who is studying in NY?
+Where is Peter studying?
+
+bash main.sh "I have made a huge mistake"
+
+OUTPUT:
+Have I made a huge mistake?
+Who has made a huge mistake?
+What have I made?
 ```
 
-Note that in the above example, questions 1 and 4 have 'saw' as verb because they consider 'saw' in the sentence to be the act of 'sawing' and not past form of 'see'.
+Note that in the first example, questions 1 and 4 have 'saw' as verb because they consider 'saw' in the sentence to be the act of 'sawing' and not past form of 'see'.
