@@ -1,5 +1,6 @@
 import os, nltk, sys, re
 import spacy
+import copy
 # nltk.download('wordnet')
 
 def find_noun_phrases(tree):
@@ -131,11 +132,11 @@ def main():
         elif (t[pos].label() == 'NP'):
             questionPhraseList.append(getQuestionPhraseNP(t0[pos], d, t0))
 
-    # for i in range(0, len(answerPhraseList)):
-    #     print('****************')
-    #     print(t0[answerPhraseList[i]].leaves())
-    #     print(questionPhraseList[i])
-    #     print('****************')
+    for i in range(0, len(answerPhraseList)):
+        print('****************')
+        print(t0[answerPhraseList[i]].leaves())
+        print(questionPhraseList[i])
+        print('****************')
 
     main_verb_pos = -1
     for pos in vd_tree.treepositions():
@@ -144,20 +145,45 @@ def main():
             break
 
     vt = t0
+    vt_list = []
     if main_verb_pos != -1:
         # Verb Decomposition
-        l = nltk.stem.wordnet.WordNetLemmatizer()
-        new_verb = l.lemmatize(t0[main_verb_pos][0,0], nltk.corpus.wordnet.VERB)
+        new_verb_list = nltk.corpus.wordnet._morphy(t0[main_verb_pos][0,0], pos='v')
         if t0[main_verb_pos][0].label() == 'VBD':
             aux_verb = 'did'
         elif t0[main_verb_pos][0].label() == 'VBZ':
             aux_verb = 'does'
         else:
             aux_verb = 'do'
-        vt[main_verb_pos][0,0] = new_verb
         vt[main_verb_pos].insert(0, nltk.tree.Tree(t0[main_verb_pos][0].label(), [aux_verb]))
+        for i in range(0, len(new_verb_list)):
+            vt[main_verb_pos][1,0] = new_verb_list[i]
+            vt_list.append(copy.deepcopy(vt))
+    else:
+        vt_list.append(vt)
+        main_verb_pos_list = []
+        for pos in t.treepositions():
+            if (not isinstance(t[pos], str)) and t[pos].label() == 'VP':
+                main_verb_pos_list.append(pos)
+        main_verb_pos_list.sort(key = len)
+        main_verb_pos = main_verb_pos_list[0]
 
-    print(vt)
+    # for i in range(0, len(vt_list)):
+    #     print(vt_list[i])
+
+    questionList = []
+    # Generating Yes/No Questions
+    for item in vt_list:
+        yn = copy.deepcopy(item)
+        temp = yn[main_verb_pos][0]
+        yn[main_verb_pos].remove(yn[main_verb_pos][0])
+        yn[0].insert(0, temp)
+        yn[0,0,0] = yn[0,0,0].capitalize()
+        question = " ".join(yn.leaves()).rstrip() + '?'
+        questionList.append(question)
+
+    for question in questionList:
+        print(question)
 
 if __name__ == "__main__":
     main()
