@@ -183,7 +183,11 @@ def main():
         if t0.treepositions().index(answerPhraseList[i]) < t0.treepositions().index(main_verb_pos):
             yn = copy.deepcopy(t0)
             yn[answerPhraseList[i]].remove(yn[answerPhraseList[i]][0])
-            question = questionPhraseList[i] + ' ' + " ".join(yn.leaves()).rstrip() + '?'
+            temp2 = yn.leaves()
+            # Some hardcoded corrections
+            if questionPhraseList[i] == 'Who' and temp2[0] == 'have':
+                temp2[0] = 'has'
+            question = questionPhraseList[i] + ' ' + " ".join(temp2).rstrip() + '?'
             questionList.append(question)
 
         # Generating Questions whose Answer Phrases are not in subject.
@@ -202,6 +206,9 @@ def main():
                     temp3[len(main_verb_pos)] = temp3[len(main_verb_pos)]-1
                 temp3 = tuple(temp3)
                 yn[temp2].remove(yn[temp3])
+                # Some hardcoded corrections
+                if questionPhraseList[i] == 'Who' and temp == 'have':
+                    temp = 'has'
                 question = questionPhraseList[i] + ' ' + temp + ' ' + " ".join(yn.leaves()).rstrip() + '?'
                 questionList.append(question)
 
