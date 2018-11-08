@@ -124,7 +124,14 @@ def main():
         elif (t[pos].label() == 'NP'):
             questionPhraseList.append(getQuestionPhraseNP(t0[pos], d, t0))
 
+    # DEBUG CODE - START
+    # for i in range(0, len(answerPhraseList)):
+    #     print(t0[answerPhraseList[i]].leaves())
+    #     print(questionPhraseList[i])
+    # DEBUG CODE - END
+
     main_verb_pos = -1
+    verb_decomposition_flag = 0
     for pos in vd_tree.treepositions():
         if (not isinstance(vd_tree[pos], str)) and vd_tree[pos].label() == 'mainvp':
             main_verb_pos = pos
@@ -145,6 +152,7 @@ def main():
         for i in range(0, len(new_verb_list)):
             vt[main_verb_pos][1,0] = new_verb_list[i]
             vt_list.append(copy.deepcopy(vt))
+        verb_decomposition_flag = 1
     else:
         vt_list.append(vt)
         main_verb_pos_list = []
@@ -153,6 +161,11 @@ def main():
                 main_verb_pos_list.append(pos)
         main_verb_pos_list.sort(key = len)
         main_verb_pos = main_verb_pos_list[0]
+
+    # DEBUG CODE - START
+    # for item in vt_list:
+    #     print(item)
+    # DEBUG CODE - END
 
     questionList = []
 
@@ -181,8 +194,14 @@ def main():
                 yn[main_verb_pos].remove(yn[main_verb_pos][0])
                 temp2 = list(answerPhraseList[i])
                 temp2 = temp2[:-1]
+                if verb_decomposition_flag == 0:
+                    temp2[len(main_verb_pos)] = temp2[len(main_verb_pos)]-1
                 temp2 = tuple(temp2)
-                yn[temp2].remove(yn[answerPhraseList[i]])
+                temp3 = list(answerPhraseList[i])
+                if verb_decomposition_flag == 0:
+                    temp3[len(main_verb_pos)] = temp3[len(main_verb_pos)]-1
+                temp3 = tuple(temp3)
+                yn[temp2].remove(yn[temp3])
                 question = questionPhraseList[i] + ' ' + temp + ' ' + " ".join(yn.leaves()).rstrip() + '?'
                 questionList.append(question)
 
