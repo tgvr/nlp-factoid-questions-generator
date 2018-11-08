@@ -176,42 +176,43 @@ def main():
     # Generating other Questions
     for i in range(0, len(answerPhraseList)):
         # Generating Questions whose Answer Phrases are in subject.
-        if t0.treepositions().index(answerPhraseList[i]) < t0.treepositions().index(main_verb_pos):
-            yn = copy.deepcopy(t0)
-            temp2 = list(answerPhraseList[i])
-            temp2 = temp2[:-1]
-            temp2 = tuple(temp2)
-            temp3 = list(answerPhraseList[i])
-            temp3 = tuple(temp3)
-            yn[temp2].remove(yn[temp3])
-            temp2 = yn.leaves()
-            # Some hardcoded corrections
-            if questionPhraseList[i] == 'Who' and temp2[0] == 'have':
-                temp2[0] = 'has'
-            question = questionPhraseList[i] + ' ' + " ".join(temp2).rstrip() + '?'
-            questionList.append(question)
-
-        # Generating Questions whose Answer Phrases are not in subject.
-        else:
-            for item in vt_list:
-                yn = copy.deepcopy(item)
-                temp = yn[main_verb_pos][0,0]
-                yn[main_verb_pos].remove(yn[main_verb_pos][0])
+        if questionPhraseList[i] != -1:            
+            if t0.treepositions().index(answerPhraseList[i]) < t0.treepositions().index(main_verb_pos):
+                yn = copy.deepcopy(t0)
                 temp2 = list(answerPhraseList[i])
                 temp2 = temp2[:-1]
-                if verb_decomposition_flag == 0:
-                    temp2[len(main_verb_pos)] = temp2[len(main_verb_pos)]-1
                 temp2 = tuple(temp2)
                 temp3 = list(answerPhraseList[i])
-                if verb_decomposition_flag == 0:
-                    temp3[len(main_verb_pos)] = temp3[len(main_verb_pos)]-1
                 temp3 = tuple(temp3)
                 yn[temp2].remove(yn[temp3])
+                temp2 = yn.leaves()
                 # Some hardcoded corrections
-                if questionPhraseList[i] == 'Who' and temp == 'have':
-                    temp = 'has'
-                question = questionPhraseList[i] + ' ' + temp + ' ' + " ".join(yn.leaves()).rstrip() + '?'
+                if questionPhraseList[i] == 'Who' and temp2[0] == 'have':
+                    temp2[0] = 'has'
+                question = questionPhraseList[i] + ' ' + " ".join(temp2).rstrip() + '?'
                 questionList.append(question)
+
+            # Generating Questions whose Answer Phrases are not in subject.
+            else:
+                for item in vt_list:
+                    yn = copy.deepcopy(item)
+                    temp = yn[main_verb_pos][0,0]
+                    yn[main_verb_pos].remove(yn[main_verb_pos][0])
+                    temp2 = list(answerPhraseList[i])
+                    temp2 = temp2[:-1]
+                    if verb_decomposition_flag == 0:
+                        temp2[len(main_verb_pos)] = temp2[len(main_verb_pos)]-1
+                    temp2 = tuple(temp2)
+                    temp3 = list(answerPhraseList[i])
+                    if verb_decomposition_flag == 0:
+                        temp3[len(main_verb_pos)] = temp3[len(main_verb_pos)]-1
+                    temp3 = tuple(temp3)
+                    yn[temp2].remove(yn[temp3])
+                    # Some hardcoded corrections
+                    if questionPhraseList[i] == 'Who' and temp == 'have':
+                        temp = 'has'
+                    question = questionPhraseList[i] + ' ' + temp + ' ' + " ".join(yn.leaves()).rstrip() + '?'
+                    questionList.append(question)
 
     for question in questionList:
         print(question)
