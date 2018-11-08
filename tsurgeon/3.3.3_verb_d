@@ -1,0 +1,5 @@
+ROOT < (S=clause < (VP=mainvp [ < (/VB.?/=tensed !< is|was|were|am|are|has|have|had|do|does|did) | < /VB.?/=tensed !< VP ]))
+
+relabel clause clause
+relabel mainvp mainvp
+relabel tensed tensed

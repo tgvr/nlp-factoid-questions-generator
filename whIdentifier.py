@@ -1,5 +1,6 @@
 import os, nltk, sys, re
 import spacy
+# nltk.download('wordnet')
 
 def find_noun_phrases(tree):
     return [subtree for subtree in tree.subtrees(lambda t: t.label()=='NP')]
@@ -92,6 +93,10 @@ def main():
         line = fp.readline()
     t0 = nltk.tree.Tree.fromstring(line)
 
+    with open('txt/3.3.3.txt') as fp:
+        line = fp.readline()
+    vd_tree = nltk.tree.Tree.fromstring(line)
+
     height = t.height()
     length_flag = -1
     answerPhraseList = []
@@ -131,6 +136,28 @@ def main():
     #     print(t0[answerPhraseList[i]].leaves())
     #     print(questionPhraseList[i])
     #     print('****************')
+
+    main_verb_pos = -1
+    for pos in vd_tree.treepositions():
+        if (not isinstance(vd_tree[pos], str)) and vd_tree[pos].label() == 'mainvp':
+            main_verb_pos = pos
+            break
+
+    vt = t0
+    if main_verb_pos != -1:
+        # Verb Decomposition
+        l = nltk.stem.wordnet.WordNetLemmatizer()
+        new_verb = l.lemmatize(t0[main_verb_pos][0,0], nltk.corpus.wordnet.VERB)
+        if t0[main_verb_pos][0].label() == 'VBD':
+            aux_verb = 'did'
+        elif t0[main_verb_pos][0].label() == 'VBZ':
+            aux_verb = 'does'
+        else:
+            aux_verb = 'do'
+        vt[main_verb_pos][0,0] = new_verb
+        vt[main_verb_pos].insert(0, nltk.tree.Tree(t0[main_verb_pos][0].label(), [aux_verb]))
+
+    print(vt)
 
 if __name__ == "__main__":
     main()
