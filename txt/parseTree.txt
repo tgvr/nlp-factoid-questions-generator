@@ -1,9 +1,1 @@
-(ROOT
-  (S
-    (NP (NNP Darwin))
-    (VP
-      (VBD studied)
-      (SBAR
-        (WHADVP (WRB how))
-        (S (NP (NNS species)) (VP (VBP evolve)))))
-    (. .)))
+(ROOT (S (NP (PRP I)) (VP (VBD saw) (NP (DT an) (NN eagle)))))

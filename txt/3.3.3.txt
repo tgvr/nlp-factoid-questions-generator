@@ -1,0 +1,1 @@
+(ROOT (clause (NP (PRP I)) (mainvp (tensed saw) (NP (DT an) (NN eagle)))))
