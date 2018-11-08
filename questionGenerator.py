@@ -44,22 +44,9 @@ def getQuestionPhraseNP(t, d, t_full):
         return 'When'
 
     # whose NP
-    head_pos = t_full.leaf_treeposition(t_full.leaves().index(head))
-    temp = list(head_pos[:-2])
-    temp.append(head_pos[-2]+1)
-    head_pos_right_sibling = tuple(temp)
-
-    temp = []
-    for pos in t.pos():
-        if len(pos) == 1 and pos != 0:
-            temp.extend(t[pos].leaves())
-    mod_NP = " ".join(temp).strip('.').rstrip()
-
-    try:
-        if (d[head] == 'PERSON' and t_full[head_pos_right_sibling].label() == 'POS'):
-            return 'Whose ' + mod_NP
-    except IndexError:
-        pass
+    for pos in t.treepositions():
+        if (not isinstance(t[pos], str)) and t[pos].label() == 'POS':
+            return 'Whose ' + head
 
     # who
     if (d[head] == 'PERSON' or head.lower() in personalPronouns):
@@ -68,8 +55,8 @@ def getQuestionPhraseNP(t, d, t_full):
     # how many NP
     if t[0].label() in numberPOS:
         temp = []
-        for pos in t.pos():
-            if len(pos) == 1 and pos != 0:
+        for pos in t.treepositions():
+            if len(pos) == 1 and t[pos].label() not in numberPOS:
                 temp.extend(t[pos].leaves())
         a = " ".join(temp).strip('.').rstrip()
         return 'How many ' + a
@@ -168,21 +155,35 @@ def main():
     # DEBUG CODE - END
 
     questionList = []
+    ynExceptionList = ['is', 'was', 'are', 'were']
 
     # Generating Yes/No Questions
-    for item in vt_list:
-        yn = copy.deepcopy(item)
+    temp = t0[main_verb_pos][0,0]
+    if temp in ynExceptionList:
+        yn = copy.deepcopy(t0)
         temp = yn[main_verb_pos][0,0]
         yn[main_verb_pos].remove(yn[main_verb_pos][0])
         question = temp.capitalize() + ' ' + " ".join(yn.leaves()).rstrip() + '?'
         questionList.append(question)
+    else:
+        for item in vt_list:
+            yn = copy.deepcopy(item)
+            temp = yn[main_verb_pos][0,0]
+            yn[main_verb_pos].remove(yn[main_verb_pos][0])
+            question = temp.capitalize() + ' ' + " ".join(yn.leaves()).rstrip() + '?'
+            questionList.append(question)
 
     # Generating other Questions
     for i in range(0, len(answerPhraseList)):
         # Generating Questions whose Answer Phrases are in subject.
         if t0.treepositions().index(answerPhraseList[i]) < t0.treepositions().index(main_verb_pos):
             yn = copy.deepcopy(t0)
-            yn[answerPhraseList[i]].remove(yn[answerPhraseList[i]][0])
+            temp2 = list(answerPhraseList[i])
+            temp2 = temp2[:-1]
+            temp2 = tuple(temp2)
+            temp3 = list(answerPhraseList[i])
+            temp3 = tuple(temp3)
+            yn[temp2].remove(yn[temp3])
             temp2 = yn.leaves()
             # Some hardcoded corrections
             if questionPhraseList[i] == 'Who' and temp2[0] == 'have':

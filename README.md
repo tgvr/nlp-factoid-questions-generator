@@ -20,7 +20,7 @@ java -Xmx2g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -
 bash main.sh "---sentence---"
 ```
 
-Example:
+**Examples**:
 ```
 bash main.sh "I saw an eagle"
 
@@ -44,6 +44,33 @@ OUTPUT:
 Have I made a huge mistake?
 Who has made a huge mistake?
 What have I made?
+
+bash main.sh "John has seen Mary"
+
+OUTPUT:
+Has John seen Mary?
+Who has seen Mary?
+Who has John seen?
+
+bash main.sh "John's car is fast"
+
+OUTPUT:
+Is John 's car fast?
+Whose car is fast?
+
+bash main.sh "John read over 200 comic books"
+
+OUTPUT:
+Did John read over 200 comic books?
+Who read over 200 comic books?
+How many comic books did John read?
+
+bash main.sh "John was a nice person"
+
+OUTPUT:
+Was John a nice person?
+Who was a nice person?
+What did John be?
 ```
 
 Note that in the first example, questions 1 and 4 have 'saw' as verb because they consider 'saw' in the sentence to be the act of 'sawing' and not past form of 'see'.
